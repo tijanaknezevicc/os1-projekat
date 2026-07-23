@@ -1,19 +1,22 @@
-#ifndef OS1_VEZBE07_RISCV_CONTEXT_SWITCH_1_SYNCHRONOUS_LIST_HPP
-#define OS1_VEZBE07_RISCV_CONTEXT_SWITCH_1_SYNCHRONOUS_LIST_HPP
+#ifndef LIST_HPP
+#define LIST_HPP
+
+#include "memoryAllocator.hpp"
 
 template<typename T>
-class List
-{
+class List {
 private:
-    struct Elem
-    {
+    struct Node {
         T *data;
-        Elem *next;
+        Node *next;
 
-        Elem(T *data, Elem *next) : data(data), next(next) {}
+        Node(T *data, Node *next) : data(data), next(next) {}
+
+        static void* operator new(size_t size) { return MemoryAllocator::memAlloc(size); }
+        static void operator delete(void* ptr) { MemoryAllocator::memFree(ptr); }
     };
 
-    Elem *head, *tail;
+    Node *head, *tail;
 
 public:
     List() : head(0), tail(0) {}
@@ -22,70 +25,61 @@ public:
 
     List<T> &operator=(const List<T> &) = delete;
 
-    void addFirst(T *data)
-    {
-        Elem *elem = new Elem(data, head);
-        head = elem;
+    void addFirst(T *data) {
+        Node *node = new Node(data, head);
+        head = node;
         if (!tail) { tail = head; }
     }
 
-    void addLast(T *data)
-    {
-        Elem *elem = new Elem(data, 0);
-        if (tail)
-        {
-            tail->next = elem;
-            tail = elem;
-        } else
-        {
-            head = tail = elem;
+    void addLast(T *data) {
+        Node *node = new Node(data, 0);
+        if (tail) {
+            tail->next = node;
+            tail = node;
+        } else {
+            head = tail = node;
         }
     }
 
-    T *removeFirst()
-    {
+    T *removeFirst() {
         if (!head) { return 0; }
 
-        Elem *elem = head;
+        Node *node = head;
         head = head->next;
         if (!head) { tail = 0; }
 
-        T *ret = elem->data;
-        delete elem;
+        T *ret = node->data;
+        delete node;
         return ret;
     }
 
-    T *peekFirst()
-    {
+    T *peekFirst() {
         if (!head) { return 0; }
         return head->data;
     }
 
-    T *removeLast()
-    {
+    T *removeLast() {
         if (!head) { return 0; }
 
-        Elem *prev = 0;
-        for (Elem *curr = head; curr && curr != tail; curr = curr->next)
-        {
+        Node *prev = 0;
+        for (Node *curr = head; curr && curr != tail; curr = curr->next) {
             prev = curr;
         }
 
-        Elem *elem = tail;
+        Node *node = tail;
         if (prev) { prev->next = 0; }
         else { head = 0; }
         tail = prev;
 
-        T *ret = elem->data;
-        delete elem;
+        T *ret = node->data;
+        delete node;
         return ret;
     }
 
-    T *peekLast()
-    {
+    T *peekLast() {
         if (!tail) { return 0; }
         return tail->data;
     }
 };
 
-#endif //OS1_VEZBE07_RISCV_CONTEXT_SWITCH_1_SYNCHRONOUS_LIST_HPP
+#endif //LIST_HPP

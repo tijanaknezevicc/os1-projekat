@@ -14,8 +14,9 @@ private:
     static int numOfBlocks;
     static uint64 beg;
     static int fragmentSize(int k);
-    static int alloc(int size);
     static void mergeWithNext(int blk);
+    static int alloc(int size);
+
 };
 
 #endif //MEMORYALLOCATOR_HPP

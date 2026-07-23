@@ -63,7 +63,7 @@ void *MemoryAllocator::memAlloc(size_t size) {
     if (blk == -1)
         return nullptr;
 
-    return (void *)(beg + blk * (uint64)MEM_BLOCK_SIZE); // bajtovi
+    return (void *)(beg + blk * (uint64)MEM_BLOCK_SIZE); // adresa
 }
 
 void MemoryAllocator::mergeWithNext(int blk) {
