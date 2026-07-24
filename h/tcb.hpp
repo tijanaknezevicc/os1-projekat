@@ -2,7 +2,6 @@
 #define CCB_HPP
 
 #include "memoryAllocator.hpp"
-#include "../lib/hw.h"
 #include "scheduler.hpp"
 
 // Thread Control Block
@@ -13,11 +12,15 @@ public:
     bool isFinished() const { return finished; }
     void setFinished(bool value) { finished = value; }
 
+    int waiting;
+
     using Body = void (*)(void*);
 
     static TCB *createThread(Body body, void* arg, uint64* stack);
 
     static void yield();
+
+    static void switchTo(TCB* next);
 
     static TCB *running;
 

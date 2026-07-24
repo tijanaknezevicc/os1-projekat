@@ -36,6 +36,30 @@ void thread_dispatch() {
     syscall(0x13);
 }
 
+int sem_open(sem_t* handle, unsigned init) {
+    return (int)syscall(0x21, (uint64)handle, (uint64)init);
+}
+
+int sem_close (sem_t handle) {
+    return (int)syscall(0x22, (uint64)handle);
+}
+
+int sem_wait (sem_t id) {
+    return (int)syscall(0x23, (uint64)id);
+}
+
+int sem_signal (sem_t id) {
+    return (int)syscall(0x24, (uint64)id);
+}
+
+int sem_wait_n(sem_t id, unsigned n) {
+    return (int)syscall(0x25, (uint64)id, (uint64)n);
+}
+
+int sem_signal_n(sem_t id, unsigned n) {
+    return (int)syscall(0x26, (uint64)id, (uint64)n);
+}
+
 char getc() {
     return (char)syscall(0x41);
 }

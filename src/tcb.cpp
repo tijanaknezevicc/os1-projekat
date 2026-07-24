@@ -8,10 +8,18 @@ TCB *TCB::createThread(Body body, void* arg, uint64* stack) {
     return new TCB(body, arg, stack);
 }
 
-void TCB::yield() {
+void TCB::switchTo(TCB* next) { // zbog semafora
+    TCB* old = running;
+    running = next;
     Riscv::pushRegisters();
-    dispatch();
+    contextSwitch(&old->context, &running->context);
     Riscv::popRegisters();
+}
+
+void TCB::yield() {
+    TCB *old = running;
+    if (!old->isFinished()) { Scheduler::put(old); }
+    switchTo(Scheduler::get());
 }
 
 void TCB::dispatch() {

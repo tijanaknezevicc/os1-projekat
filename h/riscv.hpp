@@ -75,21 +75,21 @@ public:
     // write register sstatus
     static void w_sstatus(uint64 sstatus);
 
-    // // read register sie
-    // static uint64 r_sie();
-    // // write register sie
-    // static void w_sie(uint64 sie);
-    // // mask set register sie
-    // static void ms_sie(uint64 mask);
-    // // mask clear register sie
-    // static void mc_sie(uint64 mask);
-    //
-    // enum BitMaskSie
-    // {
-    //     SIE_SSIE = (1 << 1),
-    //     SIE_STIE = (1 << 5),
-    //     SIE_SEIE = (1 << 9),
-    // };
+    // read register sie
+    static uint64 r_sie();
+    // write register sie
+    static void w_sie(uint64 sie);
+    // mask set register sie
+    static void ms_sie(uint64 mask);
+    // mask clear register sie
+    static void mc_sie(uint64 mask);
+
+    enum BitMaskSie
+    {
+        SIE_SSIE = (1 << 1),
+        SIE_STIE = (1 << 5),
+        SIE_SEIE = (1 << 9),
+    };
 
     // supervisor trap
     static void supervisorTrap();
@@ -193,23 +193,23 @@ inline void Riscv::w_sstatus(uint64 sstatus)
     __asm__ volatile ("csrw sstatus, %[sstatus]" : : [sstatus] "r"(sstatus));
 }
 
-// inline uint64 Riscv::r_sie()
-// {
-//     uint64 volatile sie;
-//     __asm__ volatile ("csrr %[sie], sie" : [sie] "=r"(sie));
-//     return sie;
-// }
-// inline void Riscv::w_sie(uint64 sie)
-// {
-//     __asm__ volatile ("csrw sie, %[sie]" : : [sie] "r"(sie));
-// }
-// inline void Riscv::ms_sie(uint64 mask)
-// {
-//     __asm__ volatile ("csrs sie, %[mask]" : : [mask] "r"(mask));
-// }
-// inline void Riscv::mc_sie(uint64 mask)
-// {
-//     __asm__ volatile ("csrc sie, %[mask]" : : [mask] "r"(mask));
-// }
+inline uint64 Riscv::r_sie()
+{
+    uint64 volatile sie;
+    __asm__ volatile ("csrr %[sie], sie" : [sie] "=r"(sie));
+    return sie;
+}
+inline void Riscv::w_sie(uint64 sie)
+{
+    __asm__ volatile ("csrw sie, %[sie]" : : [sie] "r"(sie));
+}
+inline void Riscv::ms_sie(uint64 mask)
+{
+    __asm__ volatile ("csrs sie, %[mask]" : : [mask] "r"(mask));
+}
+inline void Riscv::mc_sie(uint64 mask)
+{
+    __asm__ volatile ("csrc sie, %[mask]" : : [mask] "r"(mask));
+}
 
 #endif //OS1_VEZBE07_RISCV_CONTEXT_SWITCH_2_INTERRUPT_RISCV_HPP

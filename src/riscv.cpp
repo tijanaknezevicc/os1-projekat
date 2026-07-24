@@ -1,7 +1,8 @@
 #include "../h/riscv.hpp"
-#include "../h/tcb.hpp"
 #include "../h/memoryAllocator.hpp"
+#include "../h/tcb.hpp"
 #include "../lib/console.h"
+#include "../h/semaphore.hpp"
 
 void Riscv::popSppSpie() {
     __asm__ volatile("csrw sepc, ra");
@@ -53,7 +54,48 @@ void Riscv::handleSupervisorTrap(uint64* regs) {
                 break;
             }
 
-            /////////////////////////// semafori ///////////////////////////
+            case 0x21: { // sem_open
+                uint64* handleP = (uint64*)regs[11];
+                Semaphore* newSem = new Semaphore((unsigned)regs[12]);
+                *handleP = (uint64)newSem;
+                regs[10] = 0;
+                break;
+            }
+
+            case 0x22: { // sem_close
+                Semaphore* sem = (Semaphore*)regs[11];
+                delete sem;
+                regs[10] = 0;
+                break;
+            }
+
+            case 0x23: { // sem_wait
+                Semaphore* sem = (Semaphore*)regs[11];
+                sem->wait();
+                regs[10] = 0;
+                break;
+            }
+
+            case 0x24: { // sem_signal
+                Semaphore* sem = (Semaphore*)regs[11];
+                sem->signal();
+                regs[10] = 0;
+                break;
+            }
+
+            case 0x25: { // sem_wait_n
+                Semaphore* sem = (Semaphore*)regs[11];
+                sem->wait((unsigned)regs[12]);
+                regs[10] = 0;
+                break;
+            }
+
+            case 0x26: { // sem_signal_n
+                Semaphore* sem = (Semaphore*)regs[11];
+                sem->signal((unsigned)regs[12]);
+                regs[10] = 0;
+                break;
+            }
 
             case 0x41: { // getc
                 regs[10] = (uint64) __getc();
