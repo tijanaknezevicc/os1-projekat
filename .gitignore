@@ -1,6 +1,7 @@
 build/
 kernel
 kernel.asm
+test/
 *.o
 *.d
 *.lst

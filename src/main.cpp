@@ -2,47 +2,23 @@
 #include "../h/tcb.hpp"
 #include "../h/memoryAllocator.hpp"
 #include "../h/syscall_c.hpp"
+#include "../h/gutenberg.hpp"
 
-sem_t mutex;
-volatile int shared = 0;
+void userMain();
 
-void printLine(char threadLetter, char action, int value) {
-    putc(threadLetter);
-    putc(':');
-    putc(action);
-    putc('=');
-    if (value < 0) { putc('-'); value = -value; }
-    putc('0' + value);
-    putc('\n');
-
+void userMainWrapper(void* arg) {
+    (void) arg;
+    userMain();
 }
 
-void workerA(void* arg) {
+void idleBody(void* arg) {
     (void) arg;
-    for (int i = 0; i < 5; i++) {
-        putc('A'); putc(':'); putc('w'); putc('a'); putc('i'); putc('t'); putc('\n');
-        sem_wait(mutex);
-        putc('A'); putc(':'); putc('w'); putc('o'); putc('k'); putc('e'); putc('\n');   // <-- NOVO
-        shared++;
-        printLine('A', '+', shared);
-        thread_dispatch();
-        sem_signal(mutex);
+    while (TCB::getActiveCount() > 0) {
+        for (volatile int i = 0; i < 10000; i++) { }
+        // print_str(".");
         thread_dispatch();
     }
-}
-
-void workerB(void* arg) {
-    (void) arg;
-    for (int i = 0; i < 5; i++) {
-        putc('B'); putc(':'); putc('w'); putc('a'); putc('i'); putc('t'); putc('\n');
-        sem_wait(mutex);
-        putc('B'); putc(':'); putc('w'); putc('o'); putc('k'); putc('e'); putc('\n');   // <-- NOVO
-        shared--;
-        printLine('B', '-', shared);
-        thread_dispatch();
-        sem_signal(mutex);
-        thread_dispatch();
-    }
+    *(volatile uint32*) 0x100000 = 0x5555; // gotove sve korisnicke niti
 }
 
 extern "C" void main() {
@@ -53,21 +29,15 @@ extern "C" void main() {
 
     TCB::running = TCB::createThread(nullptr, nullptr, nullptr);
 
-    sem_open(&mutex, 1);
+    thread_t idle_h;
+    thread_create(&idle_h, idleBody, nullptr);
+    ((TCB*)idle_h)->markIdle();
 
-    thread_t h1, h2;
-    thread_create(&h1, workerA, nullptr);
-    thread_create(&h2, workerB, nullptr);
+    thread_t h;
+    thread_create(&h, userMainWrapper, nullptr);
 
-    for (int i = 0; i < 30; i++) {
-        putc('.');
-        thread_dispatch();
-    }
-
-    putc('F'); putc('I'); putc('N'); putc('A'); putc('L'); putc('=');
-    if (shared < 0) { putc('-'); shared = -shared; }
-    putc('0' + shared);
-    putc('\n');
+    TCB::running->setFinished(true);
+    thread_dispatch();
 
     while (1) {}
 }

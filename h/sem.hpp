@@ -1,20 +1,21 @@
-#ifndef SEMAPHORE_HPP
-#define SEMAPHORE_HPP
+#ifndef SEM_HPP
+#define SEM_HPP
 
 #include "tcb.hpp"
+#include "memoryAllocator.hpp"
 
-class Semaphore {
+class Sem {
 public:
-    Semaphore (unsigned initValue = 1) : val(initValue) {}
-    ~Semaphore ();
+    Sem (unsigned initValue = 1) : val(initValue) {}
+    ~Sem ();
 
     // void wait () { if (--val < 0) block(); }
     // void signal () { if (val++ < 0) deblock(); }
 
-    void wait(int n = 1);
+    int wait(int n = 1);
     void signal(int n = 1);
 
-    friend void signalWait (Semaphore* s, Semaphore* w);
+    friend void signalWait (Sem* s, Sem* w);
     int value () { return val; }
 
     static void* operator new(size_t size) { return MemoryAllocator::memAlloc(size); }
@@ -30,4 +31,4 @@ private:
      List<TCB> blocked;
 };
 
-#endif //SEMAPHORE_HPP
+#endif //SEM_HPP

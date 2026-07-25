@@ -10,17 +10,33 @@ public:
     ~TCB() { MemoryAllocator::memFree(stack); }
 
     bool isFinished() const { return finished; }
-    void setFinished(bool value) { finished = value; }
+    void setFinished(bool value) {
+        if (value && !finished) { activeCnt--; }
+        finished = value;
+    }
+
+    void block() { blocked = true; };
+    void deblock() { blocked = false; }
+    bool isBlocked() { return blocked; }
 
     int waiting;
+    int wakeupReason; // 0 - regularno, -1 - greska, semafor zatvoren
+
+    void markIdle() {
+        if (!idle) {
+            idle = true;
+            activeCnt--;
+        }
+    }
+
+    static int getActiveCount() { return activeCnt; }
 
     using Body = void (*)(void*);
 
     static TCB *createThread(Body body, void* arg, uint64* stack);
 
     static void yield();
-
-    static void switchTo(TCB* next);
+    static void dispatch();
 
     static TCB *running;
 
@@ -35,8 +51,11 @@ private:
             context({body != nullptr ? (uint64) &TCB::threadWrapper : 0,
                      stack != nullptr ? (uint64) ((char*)stack + DEFAULT_STACK_SIZE) : 0
                     }),
-            finished(false)
+            finished(false),
+            blocked(false),
+            idle(false)
     {
+        activeCnt++;
         if (body != nullptr) { Scheduler::put(this); }
     }
 
@@ -50,14 +69,16 @@ private:
     uint64 *stack;
     Context context;
     bool finished;
+    bool blocked;
+    bool idle;
+
+    static int activeCnt;
 
     friend class Riscv;
 
     static void threadWrapper();
 
     static void contextSwitch(Context *oldContext, Context *runningContext);
-
-    static void dispatch();
 };
 
 #endif //TCB_HPP
